@@ -123,6 +123,10 @@ class EchoAgent(Agent):
     def _context_sentences(prompt: str) -> list[str]:
         from ..data.segment import split_sentences
 
+        if "[CONTEXT]" not in prompt:
+            return []          # nothing was retrieved; there is nothing to extract
+        # Take the LAST marker pair: the system prompt mentions the context block by
+        # name, so an early-match split would capture the instructions instead.
         body = prompt.split("[CONTEXT]")[-1].split("[/CONTEXT]")[0]
         sentences: list[str] = []
         for block in body.split("\n\n"):

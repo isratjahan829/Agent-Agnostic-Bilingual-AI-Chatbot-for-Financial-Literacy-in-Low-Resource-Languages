@@ -48,3 +48,19 @@ def test_numeric_support_reports_missing_numbers():
 def test_answer_without_numbers_is_numerically_supported():
     support, missing = numeric_support("কোনো সংখ্যা নেই", CONTEXT)
     assert support == 1.0 and missing == []
+
+
+def test_relevance_check_refuses_an_unrelated_question(strict_filter):
+    strict_filter.config.min_question_similarity = 0.5
+    verdict = strict_filter.verify(
+        "মূল্য সংযোজন করের আদর্শ হার ১৫ শতাংশ।", CONTEXT,
+        question="সিঙ্গাপুরে ক্রিপ্টোকারেন্সির মূলধনী লাভ কর কত?",
+    )
+    assert not verdict.grounded and "irrelevant_context" in verdict.reason
+
+
+def test_relevance_check_is_off_by_default(strict_filter):
+    assert strict_filter.config.min_question_similarity == 0.0
+    verdict = strict_filter.verify("মূল্য সংযোজন করের আদর্শ হার ১৫ শতাংশ।", CONTEXT,
+                                   question="ভ্যাটের হার কত?")
+    assert verdict.grounded

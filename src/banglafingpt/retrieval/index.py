@@ -22,37 +22,58 @@ class Chunk:
 
 
 class BM25:
-    """Okapi BM25 over content tokens (sparse half of the hybrid retriever)."""
+    """Okapi BM25 over content tokens (sparse half of the hybrid retriever).
+
+    Scoring walks an inverted index rather than every document, so cost scales
+    with the number of documents that actually contain a query term.
+    """
 
     def __init__(self, corpus_tokens: Sequence[Sequence[str]], k1: float = 1.5,
                  b: float = 0.75) -> None:
         self.k1, self.b = k1, b
-        self.docs = [Counter(tokens) for tokens in corpus_tokens]
-        self.lengths = [sum(c.values()) for c in self.docs]
-        self.avg_len = (sum(self.lengths) / len(self.lengths)) if self.lengths else 0.0
-        self.df: Counter = Counter()
-        for doc in self.docs:
-            self.df.update(doc.keys())
-        self.n = len(self.docs)
+        self.lengths = [len(tokens) for tokens in corpus_tokens]
+        self.n = len(self.lengths)
+        self.avg_len = (sum(self.lengths) / self.n) if self.n else 0.0
+        self.postings: dict[str, list[tuple[int, int]]] = {}
+        for i, tokens in enumerate(corpus_tokens):
+            for term, tf in Counter(tokens).items():
+                self.postings.setdefault(term, []).append((i, tf))
 
     def _idf(self, term: str) -> float:
-        df = self.df.get(term, 0)
+        df = len(self.postings.get(term, ()))
         return math.log(1 + (self.n - df + 0.5) / (df + 0.5))
 
     def scores(self, query_tokens: Sequence[str]) -> list[float]:
         out = [0.0] * self.n
         for term in set(query_tokens):
+            postings = self.postings.get(term)
+            if not postings:
+                continue
             idf = self._idf(term)
             if idf <= 0:
                 continue
-            for i, doc in enumerate(self.docs):
-                tf = doc.get(term, 0)
-                if not tf:
-                    continue
+            for i, tf in postings:
                 norm_len = self.lengths[i] / max(1e-9, self.avg_len)
                 denom = tf + self.k1 * (1 - self.b + self.b * norm_len)
                 out[i] += idf * (tf * (self.k1 + 1)) / denom
         return out
+
+    def top_n(self, query_tokens: Sequence[str], n: int) -> list[tuple[int, float]]:
+        """Only the documents a query term touches are candidates."""
+        accumulator: dict[int, float] = {}
+        for term in set(query_tokens):
+            postings = self.postings.get(term)
+            if not postings:
+                continue
+            idf = self._idf(term)
+            if idf <= 0:
+                continue
+            for i, tf in postings:
+                norm_len = self.lengths[i] / max(1e-9, self.avg_len)
+                denom = tf + self.k1 * (1 - self.b + self.b * norm_len)
+                accumulator[i] = accumulator.get(i, 0.0) + idf * (tf * (self.k1 + 1)) / denom
+        ranked = sorted(accumulator.items(), key=lambda kv: kv[1], reverse=True)
+        return ranked[:n]
 
 
 class DocumentIndex:
@@ -79,6 +100,15 @@ class DocumentIndex:
     def _build_faiss(self) -> None:
         if not self.vectors:
             return
+        self._matrix = None
+        try:
+            import numpy as np
+
+            # Even without FAISS, one dense matrix makes search a single BLAS
+            # call instead of a Python loop over every chunk.
+            self._matrix = np.asarray(self.vectors, dtype="float32")
+        except ImportError:
+            pass
         try:
             import faiss
             import numpy as np
@@ -99,16 +129,24 @@ class DocumentIndex:
             qvec = encode([query], is_query=True)[0]  # type: ignore[call-arg]
         except TypeError:
             qvec = encode([query])[0]
+        k = min(top_k, len(self.chunks))
         if self._faiss is not None:
             import numpy as np
 
             query = np.asarray([qvec], dtype="float32")
-            scores, idx = self._faiss.search(query, min(top_k, len(self.chunks)))
+            scores, idx = self._faiss.search(query, k)
             return [(int(i), float(s)) for i, s in zip(idx[0], scores[0], strict=False) if i >= 0]
+        if getattr(self, "_matrix", None) is not None:
+            import numpy as np
+
+            sims = self._matrix @ np.asarray(qvec, dtype="float32")
+            top = np.argpartition(-sims, k - 1)[:k] if k < sims.size else np.arange(sims.size)
+            top = top[np.argsort(-sims[top])]
+            return [(int(i), float(sims[i])) for i in top]
         sims = [(i, sum(a * b for a, b in zip(qvec, v, strict=False)))
                 for i, v in enumerate(self.vectors)]
         sims.sort(key=lambda x: x[1], reverse=True)
-        return sims[:top_k]
+        return sims[:k]
 
     def sparse_search(self, query: str, top_k: int) -> list[tuple[int, float]]:
         if self.bm25 is None:

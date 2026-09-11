@@ -16,6 +16,8 @@ that regenerates it. Run everything from the repository root.
 
 | Paper element | Code | Command |
 |---|---|---|
+| Whole study, executed end-to-end on the released dataset | `notebooks/BanglaFinGPT_reproduction.ipynb` | open the notebook (outputs committed) |
+| Released `.xlsx` → pipeline records | `data/load_xlsx.py::load_corpus` | used by the notebook |
 | Sec. 3.2 — PDF → structured text | `data/pdf_extract.py` | `make dataset` |
 | Sec. 3.2 — 150–300 word segments | `data/segment.py::segment_document` | `make dataset` |
 | Sec. 3.2 — template + LLM QA generation | `data/qa_generate.py` | `make dataset` |
@@ -62,6 +64,20 @@ recall, and dropping refusals would hide that cost.
 - **Continuous metrics** — two-sided paired bootstrap, 10,000 resamples.
 - **Inter-rater agreement** — Fleiss' κ over the 1–5 rating categories, interpreted
   with the Landis & Koch bands.
+
+## What the committed notebook run does and does not show
+
+`notebooks/BanglaFinGPT_reproduction.ipynb` was executed on a CPU-only machine. Its
+dataset audit, splits, retrieval scores, filter behaviour, metrics, significance tests
+and error analysis are real measurements on all 10,412 pairs. Its **generation** scores
+come from the offline extractive backend, because QLoRA fine-tuning needs a GPU — they
+are a floor, not a reproduction of the paper's 90% EM. Two consequences worth naming:
+
+- Dense retrieval uses a hashed n-gram fallback rather than multilingual-E5, which is why
+  the tuned `hybrid_alpha` leans on BM25 in that run.
+- The hallucination audit starts from a near-zero fabrication rate, because an extractive
+  backend copies from its sources by construction. The paper's 8.5% → 0.5% is measured on
+  a generative model.
 
 ## Known deviations from the paper text
 

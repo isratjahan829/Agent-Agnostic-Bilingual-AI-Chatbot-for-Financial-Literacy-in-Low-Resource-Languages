@@ -23,14 +23,42 @@ The system has three parts, matching the paper:
 ```bash
 pip install -r requirements.txt -r requirements-dev.txt
 make demo     # end-to-end run on the bundled sample corpus — no GPU, no API key
-make test     # 56 unit tests
+make test     # unit tests
 ```
 
 `make demo` builds an index over `data/sample/`, runs three ablation variants,
 prints their metrics, shows a grounded answer with its citation, and demonstrates
 the filter rejecting a fabricated VAT rate.
 
+## Reproduction notebook
+
+[`notebooks/BanglaFinGPT_reproduction.ipynb`](notebooks/BanglaFinGPT_reproduction.ipynb)
+runs the whole study on the released dataset (`data/BanglaFinGPT_dataset.xlsx`,
+10,412 QA pairs) and is **committed with its outputs**: dataset audit, leakage-free
+splits, retrieval tuning, filter calibration, ablation, significance tests, error
+analysis and figures.
+
+It was executed on a **CPU-only machine**, so the QLoRA cell is gated behind
+`RUN_TRAINING` and the generation scores in it come from the offline extractive
+backend — a floor, not the paper's 90% EM. Open it on a GPU runtime, install
+`requirements-train.txt`, set `RUN_TRAINING = True` and `RUN_FINETUNED_EVAL = True`,
+and re-run from section 5 for the fine-tuned numbers.
+
+```bash
+pip install -r requirements-dev.txt jupyter openpyxl
+jupyter lab notebooks/BanglaFinGPT_reproduction.ipynb
+```
+
 ## Full pipeline
+
+The released spreadsheet loads directly:
+
+```python
+from banglafingpt.data.load_xlsx import load_corpus
+pairs, segments = load_corpus("data/BanglaFinGPT_dataset.xlsx")
+```
+
+To rebuild the corpus from the original regulatory PDFs instead:
 
 ```bash
 # 1. Dataset: put the NBR PDFs in data/raw/ and describe them in a manifest
@@ -76,7 +104,7 @@ Add your own by implementing `Agent.generate` and calling `register_backend`.
 src/banglafingpt/
   config.py            typed config for every stage; configs/default.yaml holds paper values
   utils.py             Bangla-aware normalisation (NFKC, digit folding, danda), seeding, IO
-  data/                PDF extraction, segmentation, QA generation, QC, splits
+  data/                PDF extraction, segmentation, QA generation, QC, splits, xlsx loader
   retrieval/           embedders, BM25 + dense index (FAISS when available), hybrid retriever
   models/              QLoRA setup, prompt construction (Eq. 17), completion-masked training
   hallucination/       grounding verdicts: cosine + keyword overlap + numeric support

@@ -53,3 +53,12 @@ def test_summarize_ratings_reports_mean_and_std():
     summary = summarize_ratings(rows)
     assert summary["accuracy"]["mean"] == 3.5
     assert summary["relevance"]["std"] == 0.0
+
+
+def test_empty_answers_are_not_counted_as_hallucinations():
+    from banglafingpt.eval.error_analysis import hallucination_report
+
+    records = [{"raw_answer": "", "answer": "", "answered": True, "grounding": None}] * 4
+    report = hallucination_report(records)
+    assert report["empty_pct"] == 100.0
+    assert report["hallucinated_pct"] == 0.0

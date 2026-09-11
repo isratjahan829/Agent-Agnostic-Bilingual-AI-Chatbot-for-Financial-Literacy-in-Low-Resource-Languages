@@ -101,6 +101,9 @@ class HallucinationConfig:
     min_cosine_similarity: float = 0.70
     min_keyword_overlap: float = 0.70
     min_numeric_support: float = 1.0  # every number must appear in a source
+    # Relevance floor: how close the question must be to the best retrieved chunk.
+    # 0.0 disables the check, which is the paper's configuration.
+    min_question_similarity: float = 0.0
     enabled: bool = True
 
 

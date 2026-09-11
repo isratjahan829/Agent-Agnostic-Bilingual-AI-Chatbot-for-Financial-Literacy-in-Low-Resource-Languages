@@ -99,12 +99,13 @@ class BanglaFinGPT:
         )
         raw = response.text.strip()
 
-        verdict: GroundingVerdict | None = None
+        # The verdict is computed even when filtering is off, so an ablation variant
+        # can be audited for grounding without changing what it answers.
+        verdict = self.filter.verify(raw, contexts, [c.chunk_id for c in chunks],
+                                     question=question)
         text, answered = raw, True
-        if self.use_filter:
-            verdict = self.filter.verify(raw, contexts, [c.chunk_id for c in chunks])
-            if not verdict.grounded:
-                text, answered = fallback_message(language), False
+        if self.use_filter and not verdict.grounded:
+            text, answered = fallback_message(language), False
 
         return Answer(
             question=question,

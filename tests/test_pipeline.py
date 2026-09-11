@@ -38,3 +38,17 @@ def test_variant_toggles_components(system):
     no_rag = system.variant(use_retrieval=False, use_filter=False)
     assert not no_rag.use_retrieval and not no_rag.use_filter
     assert system.use_retrieval  # original is unchanged
+
+
+def test_no_retrieval_variant_returns_nothing_to_extract(system):
+    # The extractive backend must not mine the system prompt when no context was
+    # retrieved; without a source there is no answer to give.
+    no_rag = system.variant(use_retrieval=False, use_filter=False)
+    assert no_rag.answer("ভ্যাটের আদর্শ হার কত?").raw_text == ""
+
+
+def test_verdict_is_computed_even_when_filtering_is_off(system):
+    unfiltered = system.variant(use_retrieval=True, use_filter=False)
+    answer = unfiltered.answer("ভ্যাটের আদর্শ হার কত?")
+    assert answer.answered            # nothing is suppressed
+    assert answer.verdict is not None  # but the grounding audit is still available

@@ -81,3 +81,30 @@ def test_validate_pairs_flags_empty_answers():
 def test_corpus_statistics_shape(sample_pairs):
     stats = corpus_statistics(sample_pairs)
     assert stats["total"]["qa_pairs"] == len(sample_pairs)
+
+
+def test_chunk_text_overlaps_and_covers():
+    from banglafingpt.data.load_xlsx import chunk_text
+
+    words = [f"w{i}" for i in range(500)]
+    chunks = chunk_text(" ".join(words), chunk_words=200, overlap_words=40)
+    assert len(chunks) > 1
+    assert chunks[0].split()[-40:] == chunks[1].split()[:40]  # windows overlap
+    assert chunks[-1].split()[-1] == "w499"                   # nothing is dropped
+
+
+def test_short_text_is_a_single_chunk():
+    from banglafingpt.data.load_xlsx import chunk_text
+
+    assert chunk_text("ছোট একটি অনুচ্ছেদ", chunk_words=200, overlap_words=40) == [
+        "ছোট একটি অনুচ্ছেদ"
+    ]
+
+
+def test_topics_map_to_paper_domains():
+    from banglafingpt.data.load_xlsx import normalize_topic
+
+    assert normalize_topic("Tax") == "taxation"
+    assert normalize_topic("Vat") == "vat"
+    with pytest.raises(ValueError):
+        normalize_topic("Sports")

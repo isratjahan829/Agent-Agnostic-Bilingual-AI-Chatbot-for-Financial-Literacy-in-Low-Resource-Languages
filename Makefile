@@ -1,7 +1,7 @@
 PYTHON ?= python3
 export PYTHONPATH := src
 
-.PHONY: help install install-train test lint demo dataset index train eval ablation serve chat clean
+.PHONY: help install install-train test lint demo dataset index train eval ablation serve chat notebook clean
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -41,6 +41,10 @@ chat:  ## Interactive bilingual CLI
 
 serve:  ## FastAPI service on :8000
 	$(PYTHON) -m uvicorn banglafingpt.app.api:app --host 0.0.0.0 --port 8000
+
+notebook:  ## Re-execute the reproduction notebook in place
+	$(PYTHON) -m jupyter nbconvert --to notebook --execute --inplace \
+		--ExecutePreprocessor.timeout=1800 notebooks/BanglaFinGPT_reproduction.ipynb
 
 clean:
 	rm -rf artifacts/demo .pytest_cache **/__pycache__

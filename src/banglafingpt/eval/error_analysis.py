@@ -98,11 +98,16 @@ def hallucination_report(records: Sequence[dict[str, Any]]) -> dict[str, Any]:
     """Table 11: fully grounded / partially grounded / hallucinated shares.
 
     Grounding is read off the filter verdict, so the same thresholds that gate
-    generation also define the audit categories.
+    generation also define the audit categories. An empty answer is reported
+    separately: it states nothing, so calling it a hallucination would overstate
+    the fabrication rate of a system that simply produced no output.
     """
-    fully = partial = hallucinated = 0
+    fully = partial = hallucinated = empty = 0
     for record in records:
         grounding = record.get("grounding") or {}
+        if not str(record.get("raw_answer", record.get("answer", ""))).strip():
+            empty += 1
+            continue
         overlap = float(grounding.get("keyword_overlap", 0.0))
         numeric = float(grounding.get("numeric_support", 1.0))
         if not record.get("answered", True):
@@ -119,6 +124,7 @@ def hallucination_report(records: Sequence[dict[str, Any]]) -> dict[str, Any]:
         "fully_grounded_pct": round(100 * fully / n, 1),
         "partially_grounded_pct": round(100 * partial / n, 1),
         "hallucinated_pct": round(100 * hallucinated / n, 1),
+        "empty_pct": round(100 * empty / n, 1),
     }
 
 
