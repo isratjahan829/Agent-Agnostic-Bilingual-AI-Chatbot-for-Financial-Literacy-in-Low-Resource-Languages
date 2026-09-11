@@ -43,7 +43,11 @@ class Answer:
             "answered": self.answered,
             "citations": self.citations,
             "retrieved": [
-                {"chunk_id": c.chunk_id, "doc_id": c.doc_id, "score": round(c.score, 4)}
+                # The passage text travels with the record: the error classifier and
+                # the human annotation sheets both need to see what was retrieved,
+                # not just which chunk it was.
+                {"chunk_id": c.chunk_id, "doc_id": c.doc_id,
+                 "score": round(c.score, 4), "text": c.text}
                 for c in self.chunks
             ],
             "grounding": self.verdict.to_dict() if self.verdict else None,

@@ -1,0 +1,20 @@
+Hallucination annotation — BanglaFinGPT
+
+You will see a question, the system's answer, and the source passages the system
+retrieved for it. Judge ONLY whether the answer is supported by those passages.
+Do not judge style, completeness, or whether you personally know the rule.
+
+Label each answer with exactly one category:
+
+  fully_grounded      Every claim in the answer, including every number, rate,
+                      date and section reference, appears in the passages.
+  partially_grounded  The answer is mostly supported, but at least one claim or
+                      number is not stated in the passages.
+  hallucinated        The answer asserts something the passages do not support,
+                      or invents a rate, date, section number or HS code.
+
+A refusal ("the documents do not contain a specific answer ...") is
+fully_grounded: it asserts nothing.
+
+Work independently. Do not discuss items with the other annotators until all
+sheets are returned.
