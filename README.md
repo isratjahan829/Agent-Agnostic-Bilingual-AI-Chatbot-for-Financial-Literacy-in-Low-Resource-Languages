@@ -22,13 +22,8 @@ The system has three parts, matching the paper:
 
 ```bash
 pip install -r requirements.txt -r requirements-dev.txt
-make demo     # end-to-end run on the bundled sample corpus — no GPU, no API key
-make test     # unit tests
+make test     # unit tests, no GPU or API key required
 ```
-
-`make demo` builds an index over `data/sample/`, runs three ablation variants,
-prints their metrics, shows a grounded answer with its citation, and demonstrates
-the filter rejecting a fabricated VAT rate.
 
 ## Reproduction notebook
 
@@ -113,6 +108,14 @@ src/banglafingpt/
   app/                 CLI and FastAPI service
   pipeline.py          retrieve → generate → verify → answer or refuse
 ```
+
+## Revision experiments
+
+`scripts/reviewer_experiments.py --all` reproduces the analyses added in revision:
+the split-protocol audit (a row-level split puts 93.2% of test items' source
+passages into training; grouping by passage makes it 0%), query-robustness under
+user-style perturbations, the domain-balanced re-evaluation, and the hallucination
+annotation sheets. `--list-blocked` names what needs a GPU, API keys or annotators.
 
 See [`docs/REPRODUCIBILITY.md`](docs/REPRODUCIBILITY.md) for the mapping from each
 paper claim to the code and command that produces it, and

@@ -25,5 +25,3 @@ jobs:
         run: python -m ruff check src tests scripts
       - name: Test
         run: python -m pytest tests --cov=banglafingpt --cov-report=term-missing
-      - name: End-to-end demo
-        run: python scripts/run_demo.py

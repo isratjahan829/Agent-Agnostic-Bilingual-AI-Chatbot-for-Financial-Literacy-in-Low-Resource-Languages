@@ -1,7 +1,7 @@
 PYTHON ?= python3
 export PYTHONPATH := src
 
-.PHONY: help install install-train test lint demo dataset index train eval ablation serve chat notebook clean
+.PHONY: help install install-train test lint dataset index train eval ablation serve chat notebook clean
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -17,9 +17,6 @@ test:  ## Run the unit test suite
 
 lint:  ## Static checks
 	$(PYTHON) -m ruff check src tests scripts
-
-demo:  ## End-to-end smoke run on the bundled sample corpus (no GPU, no API key)
-	$(PYTHON) scripts/run_demo.py
 
 dataset:  ## Build the QA dataset from raw NBR PDFs listed in data/raw/manifest.json
 	$(PYTHON) scripts/prepare_dataset.py --config configs/default.yaml
@@ -47,4 +44,4 @@ notebook:  ## Re-execute the reproduction notebook in place
 		--ExecutePreprocessor.timeout=1800 notebooks/BanglaFinGPT_reproduction.ipynb
 
 clean:
-	rm -rf artifacts/demo .pytest_cache **/__pycache__
+	rm -rf .pytest_cache .ruff_cache **/__pycache__

@@ -11,6 +11,5 @@ artifacts/
 data/raw/
 data/interim/
 data/processed/
-!data/sample/
 .env
 .DS_Store

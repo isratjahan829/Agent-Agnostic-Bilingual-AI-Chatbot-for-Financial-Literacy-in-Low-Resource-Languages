@@ -39,6 +39,10 @@ that regenerates it. Run everything from the repository root.
 | Table 11 — hallucination audit | `eval/error_analysis.py::hallucination_report` | `make ablation` |
 | Table 12 — 95% CIs and p-values | `eval/significance.py::significance_table` | `make ablation` |
 | Table 13 — latency | `pipeline.Answer.latency_ms`, aggregated in `evaluate` | `make eval` |
+| Split-protocol audit (revision, Sec. 3.2.1) | `data/build_dataset.py::leakage_report` | `python scripts/reviewer_experiments.py --all` |
+| Query robustness (revision, Sec. 4.5) | `eval/robustness.py` | `python scripts/reviewer_experiments.py --all` |
+| Hallucination annotation protocol (revision, Sec. 4.6.1) | `eval/annotation.py` | `python scripts/reviewer_experiments.py --all` |
+| Domain-balanced re-evaluation (revision, Sec. 4.4) | `scripts/reviewer_experiments.py` | `python scripts/reviewer_experiments.py --all` |
 
 ## Metric definitions
 
