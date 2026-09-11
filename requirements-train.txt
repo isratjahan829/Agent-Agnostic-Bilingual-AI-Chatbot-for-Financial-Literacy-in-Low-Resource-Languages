@@ -1,0 +1,11 @@
+# Fine-tuning and dense retrieval. Install on top of requirements.txt.
+# CUDA build of torch: see https://pytorch.org for the wheel matching your driver.
+-r requirements.txt
+torch>=2.2
+transformers>=4.44
+peft>=0.12
+bitsandbytes>=0.43
+accelerate>=0.33
+datasets>=2.20
+sentence-transformers>=3.0
+faiss-cpu>=1.8
