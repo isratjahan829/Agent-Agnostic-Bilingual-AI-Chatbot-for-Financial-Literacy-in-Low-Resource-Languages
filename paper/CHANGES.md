@@ -2,7 +2,7 @@
 
 Compile: `pdflatex main` → `biber main` → `pdflatex main` ×2.
 Revision text prints **blue** (`\revised{}`); values you must still regenerate print
-**red** (`\needsnum{}`). There are **47** red placeholders — search `needsnum` and clear
+**red** (`\needsnum{}`). There are **34** red placeholders — search `needsnum` and clear
 every one before submitting. Set `\revisionfalse` in the preamble for a clean copy.
 
 ## Reviewer 1
@@ -15,7 +15,7 @@ every one before submitting. Set `\revisionfalse` in the preamble for a clean co
 | 2 — perplexity conflation | 2.3 | Sentence tying GPT-4's Bengali perplexity to accuracy removed; perplexity now explicitly "not a measure of answer correctness" |
 | 3a — single-source corpus | new **3.5.3**, new **3.11.1** | Query-robustness table under five user-style perturbations; Limitations subsection |
 | 3b — GPT-4 question bias | 2.2 | Generator split stated, verbatim-answer + numeric checks described as the mitigation |
-| 3c — domain imbalance | 3.4 | Domain-balanced re-evaluation; the gap survives balancing, so imbalance is not the cause |
+| 3c — domain imbalance | 3.4, 3.11 | Length-based explanation replaced (see below); the ordering is shown to contradict the imbalance hypothesis, and a controlled test is named as future work |
 | 4a — math decoration | 2.3.x | Only NF4, cosine schedule, RAG marginalisation, prompt construction and the hallucination predicate kept |
 | 4b — KL 12.4 nats | 2.3.1 | **Equation and figure removed**; replaced by a plain statement of the distribution gap |
 | 4c — Chinchilla | old 2.3.2 | **Removed**; subsection retitled "Model Selection under Deployment Constraints" with the real 6 GB reason |
@@ -48,6 +48,38 @@ every one before submitting. Set `\revisionfalse` in the preamble for a clean co
 4. **`[[42.3–47.9]`** in Table 12 — stray bracket and an en-dash inside a numeric range.
    All CIs now `[42.3, 47.9]`.
 5. Added `\usepackage{xcolor}` (needed for the revision markup) and `booktabs`.
+
+## Two findings that change the paper, not just its wording
+
+**1. Table 2 does not match the released dataset.** Recomputing from
+`data/BanglaFinGPT_dataset.xlsx`:
+
+| Domain | Pairs (Table 2) | Pairs (actual) | Avg answer words (Table 2) | Avg answer words (actual) |
+|---|---|---|---|---|
+| Taxation | 2,823 | 2,800 | 28.3 | 25.9 |
+| VAT | 2,641 | 2,620 | 22.1 | 26.5 |
+| Customs | 3,475 | 3,448 | 31.7 | 25.1 |
+| Finance | 1,473 | 1,544 | 25.8 | 22.2 |
+| **Total** | **10,412** | **10,412** | 26.8 | 25.2 |
+
+Totals agree; every per-domain figure does not. Table 3's splits derive from Table 2 and
+inherit the same counts. Either the tables were computed from an earlier version of the
+corpus, or the Kaggle release is not the corpus you ran on — the second would be worse,
+since the release is what reviewers download. `\needsnum` note added to Table 2.
+
+**2. The customs explanation in Section 3.4 does not survive that check.** The submitted
+text attributed the customs gap to longer answers ("31.7 words vs. 22.1 for VAT"). In the
+released dataset VAT answers are *longer* than customs answers (26.5 vs 25.1), so the
+explanation is backwards. Replaced with a multi-condition-reasoning explanation, which
+the error analysis in Table 9 already supports.
+
+**3. My earlier balanced-subsample experiment was the wrong test, and is gone.**
+Re-balancing the *test* set cannot answer a question about *training* imbalance —
+per-domain accuracy does not depend on the other domains' test sizes. What is reported
+instead is the direction of the effect: customs is the largest domain (33.1%) and the
+weakest, general finance the smallest (14.8%) and not the weakest, with non-overlapping
+confidence intervals. A controlled test needs retraining on a balanced training set, and
+is named as future work rather than claimed.
 
 ## Inconsistencies to settle yourself
 
