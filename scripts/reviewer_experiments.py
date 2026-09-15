@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import sys
 from collections import Counter
+from dataclasses import replace
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,6 +44,28 @@ from banglafingpt.utils import (  # noqa: E402
 
 DATASET = ROOT / "data" / "BanglaFinGPT_dataset.xlsx"
 SEED = 42
+
+
+TARGET_REFUSAL = 0.123   # paper Sec. 3.6: 12.3% of queries are declined
+
+
+def calibrate_threshold(cfg, retriever, embedder, val_pairs, sample: int = 300) -> float:
+    """Pick the cosine threshold that reproduces the paper's refusal rate.
+
+    Runs the pipeline unfiltered over validation questions, then takes the
+    quantile of the observed grounding similarities that would decline
+    TARGET_REFUSAL of them.
+    """
+    import random
+
+    probe_cfg = replace(cfg.hallucination, min_cosine_similarity=0.0,
+                        min_keyword_overlap=0.0, min_question_similarity=0.0)
+    probe = BanglaFinGPT(cfg, retriever=retriever,
+                         hallucination_filter=HallucinationFilter(probe_cfg, embedder=embedder))
+    subset = random.Random(SEED).sample(val_pairs, min(sample, len(val_pairs)))
+    cosines = sorted(probe.answer(p.question).verdict.cosine_similarity for p in subset)
+    index = min(len(cosines) - 1, int(TARGET_REFUSAL * len(cosines)))
+    return round(cosines[index], 3)
 
 
 def tune_alpha(retriever, val_pairs, ks=(5,), seed: int = SEED,
@@ -383,8 +406,15 @@ def main() -> int:
     cfg.retrieval.hybrid_alpha = tune_alpha(retriever, splits["validation"], seed=SEED)
     print(f"       selected hybrid_alpha = {cfg.retrieval.hybrid_alpha}")
 
-    cfg.hallucination.min_cosine_similarity = 0.249   # calibrated on validation
+    # Calibrate the filter on validation. The cosine threshold is scale-dependent:
+    # every encoder puts similarity on a different scale, so a value tuned for one
+    # silently changes the refusal rate under another.
+    print("[tune] hallucination threshold on validation")
     cfg.hallucination.min_keyword_overlap = 0.50
+    cfg.hallucination.min_cosine_similarity = calibrate_threshold(
+        cfg, retriever, embedder, splits["validation"])
+    print(f"       min_cosine_similarity = {cfg.hallucination.min_cosine_similarity} "
+          f"(targeting a {100 * TARGET_REFUSAL:.1f}% refusal rate)")
     grounding_filter = HallucinationFilter(cfg.hallucination, embedder=embedder)
 
     print("[run] system on the test split")
