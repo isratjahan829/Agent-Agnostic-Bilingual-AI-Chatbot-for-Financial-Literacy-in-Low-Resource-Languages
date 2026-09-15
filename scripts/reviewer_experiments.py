@@ -168,6 +168,51 @@ def experiment_domain_difficulty(pairs, records) -> dict:
 
 
 # --------------------------------------------------------------------------- #
+# R2-C1b: how much of retrieval quality comes from the dense half?
+# --------------------------------------------------------------------------- #
+def experiment_encoder_comparison(segments, val_pairs, cfg) -> dict:
+    """Compare the available dense encoders against BM25 and the hybrid.
+
+    The paper specifies a pretrained multilingual encoder. This environment has
+    no access to model weights, so the comparison covers what can be built from
+    the corpus alone: hashed n-grams, and TF-IDF reduced by SVD. Both are weaker
+    than a trained encoder; reporting them bounds how much of the retrieval
+    result rests on the dense half rather than on lexical matching.
+    """
+    import random
+
+    from banglafingpt.retrieval.embedder import HashingEmbedder, TfidfSvdEmbedder
+
+    subset = random.Random(SEED).sample(val_pairs, min(400, len(val_pairs)))
+    grid = (1.0, 0.7, 0.5, 0.3, 0.0)
+    rows = []
+    for name, embedder in (("hashed n-grams", HashingEmbedder()),
+                           ("TF-IDF + SVD (corpus-fitted)", TfidfSvdEmbedder())):
+        retriever = HybridRetriever.from_segments(segments, cfg.retrieval, embedder=embedder)
+        recalls = {}
+        for alpha in grid:
+            retriever.config.hybrid_alpha = alpha
+            hits = sum(p.source in {c.doc_id for c in retriever.retrieve(p.question, top_k=5)}
+                       for p in subset)
+            recalls[alpha] = round(hits / len(subset), 3)
+        rows.append({
+            "encoder": name,
+            "dense_only_recall@5": recalls[1.0],
+            "bm25_only_recall@5": recalls[0.0],
+            "best_hybrid_recall@5": max(recalls.values()),
+            "best_alpha": max(recalls, key=recalls.get),
+            "by_alpha": recalls,
+        })
+    return {
+        "n": len(subset),
+        "rows": rows,
+        "note": ("alpha = 1.0 is dense only, 0.0 is BM25 only. The pretrained encoder "
+                 "named in the manuscript could not be evaluated here: model weights "
+                 "are unreachable from this environment."),
+    }
+
+
+# --------------------------------------------------------------------------- #
 # R1-C5c / R1-C3: do the manuscript's dataset tables match the released dataset?
 # --------------------------------------------------------------------------- #
 # Table 2 of the submitted manuscript, transcribed.
@@ -354,6 +399,8 @@ def main() -> int:
                                                             grounding_filter),
         "R1_C3_domain_difficulty": experiment_domain_difficulty(pairs, records),
         "R1_C5c_table2_audit": experiment_table2_audit(pairs),
+        "R2_C1b_encoder_comparison": experiment_encoder_comparison(
+            segments, splits["validation"], cfg),
         "R1_C3_robustness": experiment_robustness(retriever, test_pairs),
         "R1_C5c_number_consistency": experiment_number_consistency(records),
         "R2_C1a_split_protocol": experiment_split_protocol(pairs),
@@ -371,6 +418,12 @@ def main() -> int:
     print("\nR1-C1a  hallucination reduction framing")
     print(f"  {results['R1_C1a_reduction_framing']['paper_reported']}")
     audit = results["R1_C5c_table2_audit"]
+    print("\nR2-C1b  retrieval encoders (validation, recall@5)")
+    for row in results["R2_C1b_encoder_comparison"]["rows"]:
+        print(f"  {row['encoder']:<30} dense-only {row['dense_only_recall@5']:.3f}  "
+              f"BM25-only {row['bm25_only_recall@5']:.3f}  "
+              f"best hybrid {row['best_hybrid_recall@5']:.3f} at alpha={row['best_alpha']}")
+
     print("\nR1-C5c  manuscript Table 2 vs the released dataset")
     for row in audit["per_domain"]:
         c, a = row["claimed"], row["actual"]

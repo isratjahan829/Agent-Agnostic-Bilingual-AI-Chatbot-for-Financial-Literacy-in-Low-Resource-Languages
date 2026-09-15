@@ -61,7 +61,13 @@ class HybridRetriever:
         config = config or RetrievalConfig()
         embedder = embedder or load_embedder(config.embedding_model,
                                              normalize=config.normalize_embeddings)
-        index = DocumentIndex(embedder).build(chunks_from_segments(segments))
+        chunks = chunks_from_segments(segments)
+        # A corpus-trained encoder (TF-IDF+SVD) has to see the corpus before it
+        # can encode anything; a pretrained one has no fit() and is used as is.
+        fit = getattr(embedder, "fit", None)
+        if callable(fit) and not getattr(embedder, "_fitted", True):
+            fit([c.text for c in chunks])
+        index = DocumentIndex(embedder).build(chunks)
         return cls(index, config)
 
     @classmethod
