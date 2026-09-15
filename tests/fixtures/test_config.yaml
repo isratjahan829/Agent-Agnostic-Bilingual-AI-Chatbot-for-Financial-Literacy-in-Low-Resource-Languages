@@ -1,0 +1,21 @@
+# Configuration used by the test suite: hashing embeddings and the offline
+# extractive backend, so the whole pipeline runs without a GPU or an API key.
+seed: 42
+results_dir: artifacts/test/results
+figures_dir: artifacts/test/figures
+
+retrieval:
+  embedding_model: hashing
+  index_dir: artifacts/test/index
+  top_k: 3
+  hybrid_alpha: 0.6
+
+hallucination:
+  min_cosine_similarity: 0.35
+  min_keyword_overlap: 0.50
+  min_numeric_support: 1.0
+  enabled: true
+
+agent:
+  backend: echo
+  adapter_path: null

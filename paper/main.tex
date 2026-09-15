@@ -20,6 +20,7 @@
 \usepackage{booktabs}
 \usepackage{xcolor}
 \usepackage{lineno}
+\usepackage{url}
 \usepackage{hyperref}
 \linenumbers
 
@@ -734,9 +735,9 @@ evaluation runs were performed on cloud services equipped with high-memory GPUs 
 NVIDIA A100 and T4.
 
 \revised{Table~\ref{tab:implementation} lists the complete configuration needed to
-reproduce the reported results. All runs use a fixed random seed of 42. Training the
-reported model took \needsnum{AUTHORS: wall-clock time} on \needsnum{AUTHORS: which
-GPU}.}
+reproduce the reported results. All runs use a fixed random seed of 42. The reported
+model was trained on \needsnum{AUTHORS: name the one GPU the reported run used --- the
+RTX 4050, the A100 or the T4 --- and the wall-clock time it took}.}
 
 \begin{table}[!h]
 \centering
@@ -757,7 +758,7 @@ Effective batch size & 32 (micro-batch 4 $\times$ 8 accumulation steps) \\
 Maximum sequence length & 1024 tokens \\
 Loss & answer tokens only; prompt tokens masked \\
 Early stopping & validation loss, patience 3 \\
-Retriever encoder & \needsnum{AUTHORS: encoder used} \\
+Retriever encoder & \texttt{intfloat/multilingual-e5-base} \needsnum{confirm this is the encoder you ran} \\
 Chunk size / overlap & 220 words / 40 words \\
 Retrieved passages ($k$) & 5 \\
 Decoding & greedy, max 256 new tokens \\
@@ -1484,9 +1485,9 @@ this article.
 \subsection*{Data Availability}
 \revised{The curated dataset is publicly released on Kaggle \cite{banglafingpt2026}.
 The implementation, the evaluation suite, the dataset loader and an executed
-reproduction notebook are available at \needsnum{AUTHORS: repository URL}. Model
-weights (the trained LoRA adapters) are available from the corresponding author on
-reasonable request.}
+reproduction notebook are available at
+\revised{\url{https://github.com/isratjahan829/Agent-Agnostic-Bilingual-AI-Chatbot-for-Financial-Literacy-in-Low-Resource-Languages}}. Model weights (the trained LoRA adapters) are available from
+the corresponding author on reasonable request.}
 
 \printbibliography
 
