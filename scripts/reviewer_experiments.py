@@ -165,24 +165,36 @@ def experiment_domain_difficulty(pairs, records) -> dict:
         })
 
     ranked_by_f1 = sorted(rows, key=lambda r: r["f1"])
-    weakest = ranked_by_f1[0]
+    weakest, runner_up = ranked_by_f1[0], ranked_by_f1[1]
     largest = max(rows, key=lambda r: r["corpus_share_pct"])
-    smallest = min(rows, key=lambda r: r["corpus_share_pct"])
+    best = ranked_by_f1[-1]
+    # Two domains whose intervals overlap cannot be ordered against each other.
+    weakest_is_distinct = weakest["f1_ci95"][1] < runner_up["f1_ci95"][0]
+
+    if weakest_is_distinct:
+        interpretation = (
+            f"The weakest domain is {weakest['domain']} "
+            f"({weakest['corpus_share_pct']}% of the corpus), separated from "
+            f"{runner_up['domain']} by non-overlapping confidence intervals.")
+    else:
+        interpretation = (
+            f"{weakest['domain']} and {runner_up['domain']} are not separable: their "
+            f"confidence intervals overlap, so no claim is made about which is weakest.")
+    interpretation += (
+        f" Corpus share does not track accuracy: the most represented domain "
+        f"({largest['domain']}, {largest['corpus_share_pct']}%) is not the most accurate, "
+        f"and the most accurate ({best['domain']}, {best['corpus_share_pct']}%) is not the "
+        f"most represented.")
 
     return {
         "per_domain": rows,
+        "ranked_by_f1": [r["domain"] for r in reversed(ranked_by_f1)],
+        "ranked_by_corpus_share": [r["domain"] for r in
+                                   sorted(rows, key=lambda r: -r["corpus_share_pct"])],
         "weakest_domain": weakest["domain"],
+        "weakest_is_statistically_distinct": weakest_is_distinct,
         "largest_domain": largest["domain"],
-        "smallest_domain": smallest["domain"],
-        "imbalance_hypothesis_consistent": weakest["domain"] == smallest["domain"],
-        "interpretation": (
-            f"The weakest domain is {weakest['domain']}, which is the "
-            f"{'least' if weakest is smallest else 'most'} represented domain in the "
-            f"corpus ({weakest['corpus_share_pct']}%). "
-            + ("This is consistent with the imbalance hypothesis."
-               if weakest["domain"] == smallest["domain"]
-               else "This is the opposite of what the imbalance hypothesis predicts.")
-        ),
+        "interpretation": interpretation,
         "caveat": ("Per-domain accuracy is independent of the other domains' test "
                    "sizes, so this is evidence about the direction of the effect, not "
                    "a controlled test. A controlled test requires retraining on a "
