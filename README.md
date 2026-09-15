@@ -93,17 +93,6 @@ python -m banglafingpt.eval.evaluate --backend echo      # extractive, offline
 
 Add your own by implementing `Agent.generate` and calling `register_backend`.
 
-## Manuscript and revision
-
-`paper/` holds the submission itself and everything the revision needed:
-
-| File | What it is |
-|---|---|
-| `main.tex` | Revised manuscript. Text added in revision prints **blue** (`\revised{}`); values still to be supplied print **red** (`\needsnum{}`). Set `\revisionfalse` for a clean copy. |
-| `Response_to_Reviewers_BanglaFinGPT_v2.docx` | Point-by-point response letter. |
-| `CHANGES.md` | Every edit mapped to the reviewer comment it answers, plus the three findings that changed results rather than wording. |
-| `INFO_NEEDED.md` | The fourteen values still missing from `main.tex`, and how to obtain each. |
-
 ## Layout
 
 ```
@@ -119,7 +108,6 @@ src/banglafingpt/
   app/                 CLI and FastAPI service
   pipeline.py          retrieve → generate → verify → answer or refuse
 
-paper/                 manuscript, response letter, change log, open items
 notebooks/             executed reproduction notebook
 scripts/               dataset build, index build, evaluation figures, revision experiments
 tests/                 64 unit tests; fixtures are self-contained
