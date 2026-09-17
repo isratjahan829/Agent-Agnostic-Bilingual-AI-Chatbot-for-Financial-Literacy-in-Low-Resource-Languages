@@ -12,9 +12,26 @@ from typing import Any
 from ..config import QLoRAConfig
 
 
+def supports_bf16() -> bool:
+    """True when the current GPU can do bfloat16 (Ampere, SM 8.0, and newer).
+
+    A Tesla T4 is Turing (SM 7.5) and cannot: asking for bfloat16 there fails at
+    load time. An RTX 4050 is Ada (SM 8.9) and can.
+    """
+    try:
+        import torch
+    except ImportError:
+        return False
+    if not torch.cuda.is_available():
+        return False
+    return torch.cuda.get_device_capability()[0] >= 8
+
+
 def _torch_dtype(name: str) -> Any:
     import torch
 
+    if name == "auto":
+        return torch.bfloat16 if supports_bf16() else torch.float16
     return {"bfloat16": torch.bfloat16, "float16": torch.float16,
             "float32": torch.float32}[name]
 

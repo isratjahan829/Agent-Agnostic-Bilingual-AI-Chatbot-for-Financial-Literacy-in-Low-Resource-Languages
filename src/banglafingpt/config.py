@@ -52,7 +52,9 @@ class QLoRAConfig:
     load_in_4bit: bool = True
     bnb_4bit_quant_type: str = "nf4"  # NormalFloat-4, Eq. (9)
     bnb_4bit_use_double_quant: bool = True
-    bnb_4bit_compute_dtype: str = "bfloat16"
+    # "auto" resolves to bfloat16 on Ampere and newer, float16 otherwise.
+    # A T4 (Turing) has no bfloat16 support, so a hard-coded bfloat16 fails there.
+    bnb_4bit_compute_dtype: str = "auto"
     lora_r: int = 16
     lora_alpha: int = 32
     lora_dropout: float = 0.05
@@ -82,7 +84,8 @@ class TrainConfig:
     save_steps: int = 250
     early_stopping_patience: int = 3
     gradient_checkpointing: bool = True
-    bf16: bool = True
+    # None means "use bfloat16 if the GPU supports it, otherwise fp16".
+    bf16: bool | None = None
     seed: int = 42
 
 

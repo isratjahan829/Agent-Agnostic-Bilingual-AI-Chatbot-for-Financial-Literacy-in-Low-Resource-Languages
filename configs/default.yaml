@@ -30,7 +30,7 @@ qlora:
   load_in_4bit: true
   bnb_4bit_quant_type: nf4    # NormalFloat-4, Eq. (9)
   bnb_4bit_use_double_quant: true
-  bnb_4bit_compute_dtype: bfloat16
+  bnb_4bit_compute_dtype: auto   # bfloat16 on Ampere+, float16 on Turing (T4)
   lora_r: 16
   lora_alpha: 32
   lora_dropout: 0.05
@@ -51,7 +51,7 @@ train:
   save_steps: 250
   early_stopping_patience: 3
   gradient_checkpointing: true
-  bf16: true
+  # bf16 unset: resolved from the GPU (T4 -> fp16, RTX 4050 -> bf16)
   seed: 42
 
 generation:

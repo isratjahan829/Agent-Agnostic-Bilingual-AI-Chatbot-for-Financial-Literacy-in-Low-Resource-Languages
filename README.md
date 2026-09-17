@@ -25,6 +25,16 @@ pip install -r requirements.txt -r requirements-dev.txt
 make test     # unit tests, no GPU or API key required
 ```
 
+## Notebooks
+
+| Notebook | Runs on | What it produces |
+|---|---|---|
+| `BanglaFinGPT_reproduction.ipynb` | CPU, no model downloads | Dataset audit, leakage-free splits, retrieval tuning, filter calibration, ablation, significance, error analysis. Committed with outputs. |
+| `BanglaFinGPT_gpu_run.ipynb` | Kaggle T4 or a local RTX 4050 | QLoRA fine-tuning, the fine-tuned ablation, per-domain and significance tables, the hosted baselines with and without retrieval, and `tables.tex` with finished LaTeX table bodies. |
+
+Mixed precision is resolved from the device: float16 on a T4 (Turing has no bfloat16),
+bfloat16 on Ampere and newer. Do not hard-code it.
+
 ## Reproduction notebook
 
 [`notebooks/BanglaFinGPT_reproduction.ipynb`](notebooks/BanglaFinGPT_reproduction.ipynb)

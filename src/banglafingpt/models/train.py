@@ -22,9 +22,16 @@ def train(
     """Fine-tune the LoRA adapters and return the output directory."""
     from transformers import EarlyStoppingCallback, Trainer, TrainingArguments
 
+    from .qlora import supports_bf16
+
     set_seed(cfg.train.seed)
+    # Turing cards (Kaggle's T4) have no bfloat16; Ada and Ampere do. Respect an
+    # explicit setting, otherwise pick what the device actually supports.
+    use_bf16 = supports_bf16() if cfg.train.bf16 is None else cfg.train.bf16
+    use_fp16 = not use_bf16
     model, tokenizer = load_base_model(cfg.qlora, for_training=True)
     print("[qlora]", trainable_parameter_summary(model))
+    print(f"[qlora] mixed precision: {'bf16' if use_bf16 else 'fp16'}")
 
     eos = tokenizer.eos_token or "</s>"
     train_ds = to_hf_dataset(build_examples(train_pairs, retriever, cfg.retrieval.top_k, eos))
@@ -51,7 +58,8 @@ def train(
         metric_for_best_model="eval_loss",
         greater_is_better=False,
         gradient_checkpointing=cfg.train.gradient_checkpointing,
-        bf16=cfg.train.bf16,
+        bf16=use_bf16,
+        fp16=use_fp16,
         report_to=[],
         seed=cfg.train.seed,
     )
