@@ -25,6 +25,11 @@ pip install -r requirements.txt -r requirements-dev.txt
 make test     # unit tests, no GPU or API key required
 ```
 
+## Manuscript and revision
+
+`paper/` holds the revised manuscript, the response letter, the change log and the list
+of what is still open. See [`paper/README.md`](paper/README.md).
+
 ## Notebooks
 
 | Notebook | Runs on | What it produces |
