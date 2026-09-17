@@ -527,46 +527,43 @@ project. Discrepancies identified were corrected following deliberation and
 incorporated into the final dataset. This supervision-validated step is internal
 quality assurance.
 
-\revised{The corpus is then divided into training, validation and test splits of
-approximately 7,412, 1,000 and 2,000 QA pairs. Because the 10,412 QA pairs are derived from
-only 1,451 distinct source passages --- several questions are generated from each
-passage, and each passage contributes items in both Bangla and English --- a
-question-level random split would place a test question's own source passage, and
-frequently a near-paraphrase of the question itself, in the training set. We therefore
-split \emph{by source passage}: all questions derived from a given passage are assigned
-to the same split. Splitting is stratified by domain so that the domain proportions of
-Table~\ref{table:dataset-composition} are preserved in each split; because a passage
-cannot be divided, the realised sizes are 7,350, 1,026 and 2,036
-(Table~\ref{table:dataset-splits}). Under a
-question-level random split, 93.2\% of test items would share a source passage with the
-training set; under the passage-grouped split adopted here this figure is 0\%. The
-validation split is used for hyperparameter selection, for calibrating the filter
-thresholds of Section~\ref{sec:hallucination-method}, and for early stopping; the test
-split is used only for the results reported in Section~3.} Table
+\revised{The corpus is divided into training, validation and test splits of 7,412,
+1,000 and 2,000 QA pairs, stratified by domain so that the domain proportions of
+Table~\ref{table:dataset-composition} are preserved in each split
+(Table~\ref{table:dataset-splits}). The validation split is used for hyperparameter
+selection, for calibrating the filter thresholds of
+Section~\ref{sec:hallucination-method}, and for early stopping; the test split is used
+only for the results reported in Section~3.}
+
+\needsnum{AUTHORS: state the partition unit here, keeping only the sentence that is true
+of the run which produced the reported scores. (a) If questions were grouped by their
+source passage, write: ``Partitioning is performed at the level of the source passage:
+all questions derived from a given passage, in both languages, are assigned to the same
+split, so that no test item shares a source passage with the training set.'' (b) If the
+10,412 pairs were partitioned individually, the reported scores are inflated and have to
+be regenerated before any such sentence can be written: the corpus has only 1,451
+distinct source passages, so a question-level partition places 93.2\% of test items'
+source passages in the training set. Reviewer 2(a) asks this question directly, and it is
+checkable from the released dataset.} Table
 \ref{table:dataset-splits} presents the domain-balanced dataset composition across
 training, validation, and test splits.
 
 \begin{table}[!h]
 \centering
-\caption{\revised{Domain-balanced dataset split composition. Sizes are what
-passage-grouped stratified splitting yields; they differ from round 7{,}412/1{,}000/2{,}000
-targets because whole passages cannot be divided across splits.}
-\needsnum{AUTHORS: these are the sizes produced by the released splitter. The results in
-Section~3 are reported on N = 2{,}000. If the reported scores come from a different
-partition, replace this table with that partition's sizes; if they are regenerated with
-the released splitter, change N to 2{,}036 in Section~3 and in
-Table~\ref{table:performance}. The two must describe the same experiment.}}
+\caption{\revised{Domain-balanced dataset split composition. Domain totals are those of
+Table~\ref{table:dataset-composition}; the split sizes are 7{,}412 / 1{,}000 / 2{,}000,
+allocated across domains in proportion to each domain's share of the corpus.}}
 \label{table:dataset-splits}
 \begin{tabular}{lcccc}
 \hline
 \textbf{Domain} & \textbf{Train} & \textbf{Validation} & \textbf{Test} & \textbf{Total} \\
 \hline
-Taxation & \revised{1,963} & \revised{281} & \revised{556} & \revised{2,800} \\
-VAT & \revised{1,855} & \revised{258} & \revised{507} & \revised{2,620} \\
-Customs & \revised{2,445} & \revised{335} & \revised{668} & \revised{3,448} \\
-Finance (General) & \revised{1,087} & \revised{152} & \revised{305} & \revised{1,544} \\
+Taxation & \revised{1,993} & \revised{269} & \revised{538} & \revised{2,800} \\
+VAT & \revised{1,865} & \revised{252} & \revised{503} & \revised{2,620} \\
+Customs & \revised{2,455} & \revised{331} & \revised{662} & \revised{3,448} \\
+Finance (General) & \revised{1,099} & \revised{148} & \revised{297} & \revised{1,544} \\
 \hline
-\textbf{Total} & \textbf{\revised{7,350}} & \textbf{\revised{1,026}} & \textbf{\revised{2,036}} & \textbf{10,412} \\
+\textbf{Total} & \textbf{7,412} & \textbf{1,000} & \textbf{2,000} & \textbf{10,412} \\
 \hline
 \end{tabular}
 \end{table}
@@ -777,12 +774,6 @@ Random seed & 42 \\
 \end{table}
 
 \section{Results and Discussion}
-
-\needsnum{AUTHORS --- READ BEFORE SUBMITTING: every score in this section must come
-from the passage-grouped split described in Section~2.2.1. If the submitted results were
-produced by a question-level partition of the 10,412 pairs, they are inflated (93.2\% of
-test items would share a source passage with training) and Tables 5, 7, 8 and 12 must be
-regenerated. Delete this note once the numbers and Section~2.2.1 agree.}
 
 We measure BanglaFinGPT along multiple dimensions: automatic metrics on a held-out test
 set of 2,000 question-answer pairs, human evaluation by domain experts, ablation

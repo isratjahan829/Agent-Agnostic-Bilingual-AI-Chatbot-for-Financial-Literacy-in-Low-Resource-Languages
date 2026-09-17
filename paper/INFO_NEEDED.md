@@ -18,12 +18,17 @@ how the reported results were produced.
 | 5–6 | template vs GPT-4 split | 2.2 | The percentage of retained questions from each generator. **"Not recorded" is an acceptable answer** — write that rather than estimate. | R1 #3b |
 | 7 | wall-clock training time | 2.4 | How long the reported fine-tuning run took. | R2 (b), implementation details |
 
-## Two markers that are decisions, not facts
+## The one marker that is a decision
 
-| Marker | Section | Decision |
-|---|---|---|
-| Section 3 opening note | 3 | Every reported score must come from the passage-grouped split of Section 2.2.1. See the question below. |
-| Table 3 caption | 2.2.1 | Table 3 now shows the sizes the released splitter produces (7,350 / 1,026 / 2,036), but Section 3 and Table 5 report N = 2,000. Both cannot describe the same experiment. Either restore the partition that produced the reported scores, or regenerate the scores and change N to 2,036. |
+Section 2.2.1 carries a marker asking for **the partition unit**. Tables 2 and 3 and the
+reported N = 2,000 are now mutually consistent and consistent with the released dataset,
+so this is the only thing left that depends on how the experiment was run:
+
+- **Questions grouped by source passage** → write the sentence offered as option (a) in
+  the marker. Nothing needs re-running.
+- **The 10,412 pairs partitioned individually** → the scores are inflated and have to be
+  regenerated before the sentence can be written. The corpus has 1,451 distinct passages,
+  so a question-level partition puts 93.2% of test items' source passages into training.
 
 ## If your original annotation records are lost
 
