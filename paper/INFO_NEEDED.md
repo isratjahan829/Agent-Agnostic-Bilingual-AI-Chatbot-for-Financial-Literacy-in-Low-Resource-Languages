@@ -5,8 +5,9 @@ experiments that no reviewer requested have been removed: the "+ RAG context" ro
 Table 5, the query-robustness subsection, and the baselines' hallucination-rate row in
 Table 13.
 
-**No GPU run is required.** 7 markers remain (2 more are in a preamble comment), and
-every one is a fact from your existing records.
+**No GPU run is required for most of it.** 9 markers remain (2 more are in a preamble
+comment). Seven are facts from your existing records; two are decisions that depend on
+how the reported results were produced.
 
 | # | Marker | Section | What to supply | Reviewer comment |
 |---|---|---|---|---|
@@ -16,6 +17,13 @@ every one is a fact from your existing records.
 | 4 | human-evaluation κ | 3.2 | One value. The text says 0.72, Figure 2(b) says 0.68–0.71 — pick one, or say the figure is per-dimension and the text the mean. | R1 #5c, number consistency |
 | 5–6 | template vs GPT-4 split | 2.2 | The percentage of retained questions from each generator. **"Not recorded" is an acceptable answer** — write that rather than estimate. | R1 #3b |
 | 7 | wall-clock training time | 2.4 | How long the reported fine-tuning run took. | R2 (b), implementation details |
+
+## Two markers that are decisions, not facts
+
+| Marker | Section | Decision |
+|---|---|---|
+| Section 3 opening note | 3 | Every reported score must come from the passage-grouped split of Section 2.2.1. See the question below. |
+| Table 3 caption | 2.2.1 | Table 3 now shows the sizes the released splitter produces (7,350 / 1,026 / 2,036), but Section 3 and Table 5 report N = 2,000. Both cannot describe the same experiment. Either restore the partition that produced the reported scores, or regenerate the scores and change N to 2,036. |
 
 ## If your original annotation records are lost
 

@@ -548,7 +548,14 @@ training, validation, and test splits.
 
 \begin{table}[!h]
 \centering
-\caption{\revised{Domain-balanced dataset split composition. Sizes are what passage-grouped stratified splitting yields; they differ slightly from round 7{,}412/1{,}000/2{,}000 targets because whole passages cannot be divided across splits.}}
+\caption{\revised{Domain-balanced dataset split composition. Sizes are what
+passage-grouped stratified splitting yields; they differ from round 7{,}412/1{,}000/2{,}000
+targets because whole passages cannot be divided across splits.}
+\needsnum{AUTHORS: these are the sizes produced by the released splitter. The results in
+Section~3 are reported on N = 2{,}000. If the reported scores come from a different
+partition, replace this table with that partition's sizes; if they are regenerated with
+the released splitter, change N to 2{,}036 in Section~3 and in
+Table~\ref{table:performance}. The two must describe the same experiment.}}
 \label{table:dataset-splits}
 \begin{tabular}{lcccc}
 \hline
